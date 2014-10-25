@@ -175,7 +175,7 @@ public class Kit {
 
 		items = new ItemStack[] {ItemLib.addEnchantments(ItemLib.createItem(Material.STONE_SWORD, 1, (short) 0, "Katana", null), 
 				new Enchantment[] {Enchantment.DAMAGE_ALL, Enchantment.KNOCKBACK}, new int[] {1, 1}),
-				ItemLib.addDisplayName(new ItemStack(Material.NETHER_STAR, 3), "Shuriken")};
+				ItemLib.addDisplayName(new ItemStack(Material.NETHER_STAR, 1), "Shuriken")};
 		armor = new ItemStack[] {ItemLib.colorLeatherArmor(new ItemStack(Material.LEATHER_BOOTS), Color.BLACK),
 				ItemLib.colorLeatherArmor(new ItemStack(Material.LEATHER_LEGGINGS), Color.BLACK), 
 				ItemLib.colorLeatherArmor(new ItemStack(Material.LEATHER_CHESTPLATE), Color.BLACK),

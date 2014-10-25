@@ -22,7 +22,7 @@ public class KitAbilities {
 	/* RIGHT CLICK */
 
 	public static RightAbility shuriken() {
-		return new RightAbility(1) {
+		return new RightAbility(15) {
 			public void run(Player p) {
 				final Item shuriken = p.getWorld().dropItem(p.getEyeLocation(), new ItemStack(Material.NETHER_STAR));
 				shuriken.setVelocity(p.getLocation().getDirection().multiply(1.25D));
