@@ -1,0 +1,52 @@
+name: Antykacraft
+main: fr.mrazerty31.antykacraft.Antykacraft
+version: 0.0.3
+author: MrAzErTy31
+depend: [ItemLib, Essentials]
+commands:
+  pvpbox:
+    description: Commande de base du plugin.
+    usage: /pvpbox [args]
+  antykastuff:
+    description: Donne le stuff d'une ville a un joueur.
+    usage: /antykastuff <player> <ville>
+  pvpstuff:
+    description: Donne le stuff PvP à un joueur.
+    usage: /pvpstuff <player>
+  vip:
+    description: Grade un joueur VIP
+    usage: /vip <player> <armorMaterial>
+  stuffbw:
+    description: Donne le stuff BW à un joueur.
+    usage: /stuffbw <player>
+  aide:
+    description: Commande d'aide pour les nouveaux joueurs.
+    usage: /aide
+  warnr:
+    description: Permet d'avertir le serveur d'un reload.
+    usage: /warnr
+  ping:
+    description: Permet d'obtenir son ping ou celui d'un autre joueur.
+    usage: /ping
+  raid:
+    description: Permet de lancer un raid contre une faction ennemie.
+    usage: /raid <faction>
+  timer:
+    description: Permet de lancer un timer.
+    usage: /timer <minutes>
+  stoptimer:
+    description: Permet de stopper le timer.
+    usage: /stoptimer
+  faction:
+    description: Permet de chatter avec sa faction.
+    usage: /faction <message>
+    aliases: f
+  balancefac:
+    descrtiption: Permet d'avoir un classement des richesses des factions.
+    usage: /balancefac
+  faccount:
+    description: Permet de gérer le coffre de richesse de sa faction.
+    usage: /faccount [args]
+  annonce:
+    description: Permet de gérer les annonces.
+    usage: /annonce <args>

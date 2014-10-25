@@ -1,0 +1,12 @@
+antykacraft:
+  pvpbox:
+    defaultArena: 'nuage'
+    arenas:
+      nuage:
+        enabled: true
+        location:
+          x: -601
+          y: 129
+          z: -560
+          yaw: 32
+          pitch: 179
