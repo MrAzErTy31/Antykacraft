@@ -15,14 +15,11 @@ public class PvPBoxGui {
 		Inventory inv = Bukkit.createInventory(p, InventoryType.CHEST.getDefaultSize() * 2, "Sélection du kit PvPBox");
 		inv.setItem(11, PvPBoxItems.warriorKit);
 		inv.setItem(12, PvPBoxItems.archerKit);
-		inv.setItem(13, PvPBoxItems.vampireKit);
 		inv.setItem(14, PvPBoxItems.wizardKit);
 		inv.setItem(15, PvPBoxItems.reaperKit);
-		inv.setItem(21, PvPBoxItems.sachaKit);
 		inv.setItem(23, PvPBoxItems.trollerKit);
 		inv.setItem(29, PvPBoxItems.ninjaKit);
 		inv.setItem(30, PvPBoxItems.ghostKit);
-		inv.setItem(31, PvPBoxItems.rainbbowKit);
 		inv.setItem(32, PvPBoxItems.rabbitKit);
 		inv.setItem(33, PvPBoxItems.tankKit);
 		for(int i = 0; i < inv.getSize(); i++) if(inv.getItem(i) == null) inv.setItem(i, glasspane);

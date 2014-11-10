@@ -63,7 +63,7 @@ public class Timers {
 			for(OfflinePlayer pl : t.getPlayers())
 				te.addPlayer(pl);
 			te.setAllowFriendlyFire(false);
-			te.setPrefix(te.getPrefix());
+			te.setPrefix("" + c.getColor());
 		}
 	}
 	

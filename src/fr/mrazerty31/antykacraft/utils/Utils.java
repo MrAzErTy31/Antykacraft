@@ -5,13 +5,14 @@ import java.math.RoundingMode;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import fr.mrazerty31.antykacraft.Antykacraft;
 
 public class Utils {
-
+	
 	public static String wordMaj(String word) {
 		return word.replaceFirst(".", (word.charAt(0) + "").toUpperCase());
 	}
@@ -51,5 +52,13 @@ public class Utils {
 		double y = Math.sin(pitch) * Math.sin(yaw);
 		double z = Math.cos(pitch);
 		return new Vector(x, z, y).multiply(mul);
+	}
+	
+	public static Vector getVectorToLocation(Location a, Location b, double multiplicator) {
+		return a.subtract(b).toVector().multiply(multiplicator);
+	}
+	
+	public static Vector getVectorToLocation(Location a, Location b) {
+		return a.subtract(b).toVector();
 	}
 }

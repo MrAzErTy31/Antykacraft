@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -21,6 +22,7 @@ public class City {
 	/* Fields */
 
 	private String name, displayName, empire;
+	private ChatColor color;
 	private Team team;
 	private boolean raid;
 	private double money;
@@ -30,18 +32,21 @@ public class City {
 
 	/* Constructors */
 
-	public City(String name, String displayName) {
+	public City(String name, String displayName, String empire, ChatColor color) {
 		this.setName(name);
 		this.setDisplayName(displayName);
 		this.setRaid(false);
+		this.setEmpire(empire);
+		this.setColor(color);
 	}
 
-	public City(String name, String displayName, Team team, String empire) {
+	public City(String name, String displayName, Team team, String empire, ChatColor color) {
 		this.setName(name);
 		this.setDisplayName(displayName);
 		this.setTeam(team);
 		this.setRaid(false);
 		this.setEmpire(empire);
+		this.setColor(color);
 	}
 
 	/* Getters / Setters */
@@ -128,6 +133,14 @@ public class City {
 	public void setEmpire(String empire) {
 		this.empire = empire;
 	}
+	
+	public ChatColor getColor() {
+		return color;
+	}
+
+	public void setColor(ChatColor color) {
+		this.color = color;
+	}
 
 	/* Static Methods */
 
@@ -183,11 +196,11 @@ public class City {
 
 	public static void init() {
 		Scoreboard sb = Antykacraft.sbManager.getMainScoreboard();
-		City tikal = new City("tikal", "Tikal", sb.getTeam("Mayas"), "maya");
+		City tikal = new City("tikal", "Tikal", sb.getTeam("Mayas"), "maya", ChatColor.DARK_GREEN);
 		cities.add(tikal);
-		City thebes = new City("thebes", "Thèbes", sb.getTeam("Egypte"), "égyptien");
+		City thebes = new City("thebes", "Thèbes", sb.getTeam("Egypte"), "égyptien", ChatColor.BLUE);
 		cities.add(thebes);
-		City athenes = new City("athenes", "Athènes", sb.getTeam("Grece"), "grec");
+		City athenes = new City("athenes", "Athènes", sb.getTeam("Grece"), "grec", ChatColor.YELLOW);
 		cities.add(athenes);
 		for(City c : cities) {
 			c.updateMoney();
@@ -200,6 +213,4 @@ public class City {
 		teamDisplay.put(sb.getTeam("Egypte"), "Thèbes");
 		teamDisplay.put(sb.getTeam("Grecs"), "Athènes");
 	}
-
-
 }

@@ -1,48 +1,47 @@
 package fr.mrazerty31.antykacraft.pvpbox;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import fr.mrazerty31.antykacraft.Antykacraft;
-import fr.mrazerty31.antykacraft.pvpbox.MainAbility.HitAbility;
 import fr.mrazerty31.antykacraft.pvpbox.MainAbility.RightAbility;
 import fr.mrazerty31.antykacraft.utils.Utils;
 
 public class KitAbilities {
 
-	/* RIGHT CLICK */
-
 	public static RightAbility shuriken() {
-		return new RightAbility(15) {
-			public void run(Player p) {
-				final Item shuriken = p.getWorld().dropItem(p.getEyeLocation(), new ItemStack(Material.NETHER_STAR));
-				shuriken.setVelocity(p.getLocation().getDirection().multiply(1.25D));
-				Bukkit.getScheduler().scheduleSyncDelayedTask(Antykacraft.instance, new Runnable() {
-					public void run() {shuriken.remove();}
-				}, 30L);
-				while(!shuriken.isDead()) {
-					for(Entity en : p.getWorld().getEntities()) {
-						if(en.getType() == EntityType.PLAYER) {
-							Player plr = (Player) en;
-							List<Player> hit = new ArrayList<Player>();
-							if(plr != p && !hit.contains(plr)) {
-								if(shuriken.getLocation().distanceSquared(en.getLocation()) <= 0.75) {
-									plr.setHealth(plr.getHealth() - 3D);
-									hit.add(plr);
+		return new RightAbility(10) {
+			public void run(final Player p) {
+				final Item i = p.getWorld().dropItem(p.getEyeLocation(), new ItemStack(Material.NETHER_STAR));
+				i.setPickupDelay(9999);
+				i.setVelocity(p.getLocation().getDirection().multiply(2D));
+				try {
+					Bukkit.getScheduler().scheduleSyncRepeatingTask(Antykacraft.instance, new BukkitRunnable() {
+						public void run() {
+							for(Player pl : Bukkit.getWorld("event").getPlayers()) {
+								if(!p.equals(pl)) {
+									if(!i.isDead()) {
+										if(i.getLocation().distanceSquared(pl.getLocation()) <= 0.75) {
+											pl.damage(5D);
+											i.remove();
+											cancel();
+										}
+									} else cancel();
 								}
 							}
 						}
+					}, 0L, 1L);
+				} catch(Exception ex) {}
+				Bukkit.getScheduler().scheduleSyncDelayedTask(Antykacraft.instance, new BukkitRunnable() {
+					public void run() {
+						i.remove();
 					}
-				}
+				}, 50L);
 			}
 		};
 	}
@@ -62,23 +61,4 @@ public class KitAbilities {
 			}
 		};
 	}
-
-	/* HIT */
-
-	public static HitAbility vampireSteal() {
-		return new HitAbility() {
-			public void run(Player p, Player d, double damage) {
-				try {
-					if(damage >= 1) {
-						p.setHealth(p.getHealth() + (((int)damage)/2.5));
-					} else p.setHealth(p.getHealth() + 0.5);
-				} catch(Exception ex) {
-					p.setHealth(20D);
-				}
-			}
-		};
-	}
-
-	/* LEFT CLICK */
-
 }

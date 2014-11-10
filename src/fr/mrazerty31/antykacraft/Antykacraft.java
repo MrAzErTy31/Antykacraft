@@ -25,7 +25,6 @@ import com.earth2me.essentials.api.Economy;
 import com.earth2me.essentials.api.NoLoanPermittedException;
 import com.earth2me.essentials.api.UserDoesNotExistException;
 
-import fr.mrazerty31.antykacraft.antykastuff.kits.StuffKits;
 import fr.mrazerty31.antykacraft.listener.AntykacraftListener;
 import fr.mrazerty31.antykacraft.listener.PvPBoxListener;
 import fr.mrazerty31.antykacraft.pvpbox.Kit;
@@ -170,22 +169,7 @@ public class Antykacraft extends JavaPlugin {
 			}
 		} 
 		/* AntykaStuff */
-		else if(cmd.getName().equalsIgnoreCase("antykastuff")) {
-			if(!(sender instanceof Player)) {
-				if(args.length == 2) {
-					Player giveTo = Bukkit.getPlayer(args[1]);
-					if(giveTo != null) {
-						String city = args[0];
-						if(city.equalsIgnoreCase("thebes") || city.equalsIgnoreCase("tikal") || city.equalsIgnoreCase("athenes")) {
-							StuffKits.antykaStuff(city, giveTo);
-							giveTo.sendMessage(prefix + ChatColor.GREEN + "Tu as bien reçu le stuff de la ville de \"" + Utils.wordMaj(city.toLowerCase()) + "\" !");
-						}
-					}
-				}
-			} else {
-				if(sender.isOp() == true) sender.sendMessage(prefix + ChatColor.RED + "La commande doit être executée via command block.");
-			}
-		} else if(cmd.getName().equalsIgnoreCase("pvpstuff")) {
+		else if(cmd.getName().equalsIgnoreCase("pvpstuff")) {
 			if(!(sender instanceof Player)) {
 				if(args.length == 1) {
 					Player p = this.getServer().getPlayer(args[0]);
@@ -228,20 +212,7 @@ public class Antykacraft extends JavaPlugin {
 					}
 				} else p.sendMessage(ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
 			}
-		} else if(cmd.getName().equalsIgnoreCase("stuffbw")) {
-			if(!(sender instanceof Player)) {
-				if(args.length == 1) {
-					Player giveIt = Bukkit.getPlayer(args[0]);
-					if(giveIt != null) {
-						StuffKits.bwKit(giveIt);
-						giveIt.sendMessage(prefix + ChatColor.GREEN + "Kit reçu !");
-					}
-				}
-			} else {
-				if(sender.isOp() == true) sender.sendMessage(prefix + ChatColor.RED + "La commande doit être éxecutée via command block.");
-			}
 		}
-
 		/* Antykacraft Général */
 
 		else if(cmd.getName().equalsIgnoreCase("warnr")) {
@@ -456,7 +427,31 @@ public class Antykacraft extends JavaPlugin {
 					} else p.sendMessage(prefix + "§cMauvaise utilisation.");
 				} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
 			}
-		}
+		} /*else if(cmd.getName().equalsIgnoreCase("mapbuild")) {
+			if(sender instanceof Player) {
+				Player p = (Player) sender;
+				if(p.hasPermission("antykacraft.mapbuild")) {
+					if(args.length == 2) {
+						if(args[0].equalsIgnoreCase("allow")) {
+							try {
+								Player pl = Bukkit.getPlayer(args[1]);
+								Utils.buildAllow.add(pl);
+								p.sendMessage(prefix + "§aLe joueur a bien été autorisé a pénétrer dans la map build !");
+							} catch(Exception ex) {
+								p.sendMessage(prefix + "§cLe joueur n'est pas en ligne.");
+							}
+						} else if(args[0].equalsIgnoreCase("disallow")) {
+							OfflinePlayer pl = Bukkit.getOfflinePlayer(args[1]);
+							if(Utils.buildAllow.contains(pl)) {
+								Utils.buildAllow.remove(pl);
+								p.sendMessage(prefix + "§aLe joueur a bien été interdit à pénétrer dans la map build.");
+							}
+							else p.sendMessage(prefix + "§cLe joueur n'est pas autorisé à entrer dans la map build.");
+						}
+					}
+				}
+			}
+		}*/
 		return true;	
 	}
 }

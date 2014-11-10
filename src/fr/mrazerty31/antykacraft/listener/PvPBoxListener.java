@@ -52,8 +52,19 @@ public class PvPBoxListener implements Listener {
 						if(playerKits.containsKey(p)) {
 							if(playerKits.get(p).getName().equals("Fantôme"))
 								fr.mrazerty31.antykacraft.libs.ParticleEffect.SPELL.display(p.getLocation().add(0, 1, 0), 0, 0, 0, 10, 10);
-							if(p.getWorld().getName().equals("world"))
-								if(playerKits.containsKey(p)) playerKits.remove(p);
+						}
+					}
+				} catch(NullPointerException npe) {}
+
+				/* Passif Assassin */
+				try {
+					for(Player p : Bukkit.getWorld("event").getPlayers()) {
+						if(playerKits.containsKey(p)) {
+							if(playerKits.get(p).getName().contains("Assassin")) {
+								if(p.getLocation().add(0, 1, 0).getBlock().getType() == Material.GRASS) {
+									p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Utils.calculateTicks(3600), 2));
+								} else p.removePotionEffect(PotionEffectType.INVISIBILITY);
+							}
 						}
 					}
 				} catch(NullPointerException npe) {}
@@ -213,6 +224,8 @@ public class PvPBoxListener implements Listener {
 						e.setCancelled(true);
 					else if(p.getItemInHand().getType() == Material.POTION)
 						e.setCancelled(false);
+					else if(p.getItemInHand().getType() == Material.MONSTER_EGG)
+						e.setCancelled(false);
 			}
 		} catch(Exception ex) {}
 	}
@@ -241,45 +254,27 @@ public class PvPBoxListener implements Listener {
 		} catch(NullPointerException npe) {}
 	}
 
-
-	/* NEW KITS */
-
-	@EventHandler
-	public void vampirePassive(PlayerDeathEvent e) {
-		Player p = e.getEntity();
-		if(p.getWorld().getName().equals("event")) {
-			if(p.getKiller() instanceof Player) {
-				Player k = p.getKiller();
-				if(playerKits.containsKey(k)) {
-					if(playerKits.get(k).getName().equals("Vampire")) {
-						k.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Utils.calculateTicks(3), 1));
-					}
-				}
-			}
-		}
-	}
-
 	@EventHandler
 	public void rightAbility(PlayerInteractEvent e) {
 		final Player p = e.getPlayer();
 		if(e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			if(p.getWorld().getName().equals("event")) {
 				if(playerKits.containsKey(p))
-				if(!cooldown.contains(p)) {
-					try {
-						ItemStack iHand = e.getItem();
-						Kit k = playerKits.get(p);
-						((RightAbility)k.rightAbilities.get(iHand)).run(p);
-						cooldown.add(p);
-						Bukkit.getScheduler().scheduleSyncDelayedTask(Antykacraft.instance, new Runnable() {
-							public void run() {cooldown.remove(p);}
-						}, k.rightAbilities.get(iHand).getCooldown());
-					} catch(Exception ex) {}
-				}
+					if(!cooldown.contains(p)) {
+						try {
+							ItemStack iHand = e.getItem();
+							Kit k = playerKits.get(p);
+							((RightAbility)k.rightAbilities.get(iHand)).run(p);
+							cooldown.add(p);
+							Bukkit.getScheduler().scheduleSyncDelayedTask(Antykacraft.instance, new Runnable() {
+								public void run() {cooldown.remove(p);}
+							}, k.rightAbilities.get(iHand).getCooldown());
+						} catch(Exception ex) {}
+					}
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void hitAbility(EntityDamageByEntityEvent e) {
 		if(e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
