@@ -2,7 +2,7 @@ name: Antykacraft
 main: fr.mrazerty31.antykacraft.Antykacraft
 version: 0.0.3
 author: MrAzErTy31
-depend: [ItemLib, Essentials]
+depend: [Essentials]
 commands:
   pvpbox:
     description: Commande de base du plugin.
@@ -50,3 +50,9 @@ commands:
   annonce:
     description: Permet de gérer les annonces.
     usage: /annonce <args>
+  bowspleef:
+    description: Donne un kit bowspleef au joueur.
+    usage: /bowspleef <player>
+  jobs:
+    description: blblblblbl
+    usage: /jobs join

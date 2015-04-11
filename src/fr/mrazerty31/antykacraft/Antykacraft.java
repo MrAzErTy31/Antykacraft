@@ -9,12 +9,11 @@ import me.spoony.chatlib.ChatPart;
 import me.spoony.chatlib.MessageSender;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -27,12 +26,14 @@ import com.earth2me.essentials.api.UserDoesNotExistException;
 
 import fr.mrazerty31.antykacraft.listener.AntykacraftListener;
 import fr.mrazerty31.antykacraft.listener.PvPBoxListener;
-import fr.mrazerty31.antykacraft.pvpbox.Kit;
 import fr.mrazerty31.antykacraft.pvpbox.PvPBoxConfig;
 import fr.mrazerty31.antykacraft.pvpbox.PvPBoxGui;
 import fr.mrazerty31.antykacraft.pvpbox.PvPBoxItems;
+import fr.mrazerty31.antykacraft.pvpbox.kits.Kit;
+import fr.mrazerty31.antykacraft.pvpbox.spells.SpellUtil;
 import fr.mrazerty31.antykacraft.utils.City;
 import fr.mrazerty31.antykacraft.utils.ConfigManager;
+import fr.mrazerty31.antykacraft.utils.Raid;
 import fr.mrazerty31.antykacraft.utils.Teams;
 import fr.mrazerty31.antykacraft.utils.Timers;
 import fr.mrazerty31.antykacraft.utils.Utils;
@@ -73,11 +74,11 @@ public class Antykacraft extends JavaPlugin {
 	}
 
 	void initClasses() {
-		Recipes.init();
-		PvPBoxItems.init();
-		Kit.init();
 		Timers.init();
 		ConfigManager.init();
+		SpellUtil.linkSpells();
+		PvPBoxItems.init();
+		Kit.init();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -91,70 +92,81 @@ public class Antykacraft extends JavaPlugin {
 						if(args[0].equalsIgnoreCase("list")) {
 							if(p.hasPermission("antykacraft.pvpbox.list")) {
 								p.sendMessage(PvPBoxConfig.getPvPBoxArenaList());
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("reload")) {
 							if(p.hasPermission("antykacraft.pvpbox.reload")) {
 								reloadConfig();
-								p.sendMessage("§6[PvPBox] " + ChatColor.GREEN + "Config redemarrée avec succés !");
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+								p.sendMessage(PVPBOX_PREF + "§aConfig redemarrée avec succés !");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("stats")) {
 							if(p.hasPermission("antykacraft.pvpbox.stats")) {
 								p.sendMessage(PvPBoxConfig.getOfflinePlayerPvPBoxStats(p.getName(), true));
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("rank")) {
 							if(p.hasPermission("antykacraft.pvpbox.rank")) {
 								p.sendMessage(PvPBoxConfig.getPvPBoxRank(5));
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("trank")) {
 							p.sendMessage(PvPBoxConfig.getRatioPvPBoxRank(5));
-						} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Argument inconnu.");
+						} else if(args[0].equalsIgnoreCase("debug")) {
+							if(p.hasPermission("antykacraft.pvpbox.debug")) {
+								Kit.debug = Kit.debug == false ? true : false;
+								p.sendMessage(Kit.debug == true ? "§aDebug Mode ON !" : "§cDebug Mode OFF !");
+							} else p.sendMessage(PVPBOX_PERM);
+						} else if(args[0].equalsIgnoreCase("choose")) {
+							if(p.hasPermission("antykacraft.pvpbox.choose")) {
+								if(PvPBoxListener.playerKits.containsKey(p)) {
+									Kit.resetPvPBoxPlayer(p);
+								} else p.sendMessage(PVPBOX_PREF + "§cNope.");
+							}
+						}else p.sendMessage(PVPBOX_PREF + "§cArgument inconnu.");
 					} else if(args.length == 2) { /* 2 Arguments */
 						if(args[0].equalsIgnoreCase("create")) {
 							if(p.hasPermission("antykacraft.pvpbox.create")) {
 								PvPBoxConfig.createNewPvPBoxArena(p, args[1]);
-								p.sendMessage("§6[PvPBox] " + ChatColor.GREEN + "L'arène PvPBox \"" + Utils.wordMaj(args[1]) + "\" a bien été crée !");
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+								p.sendMessage(PVPBOX_PREF + "§aL'arène PvPBox \"" + Utils.wordMaj(args[1]) + "\" a bien été crée !");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("setdefault")) {
 							if(p.hasPermission("antykacraft.pvpbox.setdefault")) {
 								if(PvPBoxConfig.pvpBoxArenaExist(args[1])) {
 									PvPBoxConfig.setDefaultPvPBoxArena(args[1]);
-									p.sendMessage("§6[PvPBox] " + ChatColor.GREEN + "L'arène \"" + Utils.wordMaj(args[1]) + "\" a bien été définie par défaut !");
+									p.sendMessage(PVPBOX_PREF + "§aL'arène \"" + Utils.wordMaj(args[1]) + "\" a bien été définie par défaut !");
 								} else if(args[1].equalsIgnoreCase("none")) {
 									this.getConfig().set("antykacraft.pvpbox.defaultArena", "none");
-									p.sendMessage("§6[PvPBox] " + ChatColor.GREEN + "Aucune arène n'a été sélectionnée.");
-								} else p.sendMessage(ChatColor.RED + "L'arene spécifiée n'existe pas !");
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+									p.sendMessage(PVPBOX_PREF + "§aAucune arène n'a été sélectionnée.");
+								} else p.sendMessage("§cL'arene spécifiée n'existe pas !");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("remove")) {
 							if(p.hasPermission("antykacraft.pvpbox.remove")) {
 								if(PvPBoxConfig.pvpBoxArenaExist(args[1])) {
 									PvPBoxConfig.removePvPBoxArena(args[1]);
-									p.sendMessage("§6[PvPBox] " + ChatColor.GREEN + "L'arène \"" + Utils.wordMaj(args[1]) + "\" a bien été supprimée");
+									p.sendMessage(PVPBOX_PREF + "§aL'arène \"" + Utils.wordMaj(args[1]) + "\" a bien été supprimée");
 								}
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("stats")) {
 							if(p.hasPermission("antykacraft.pvpbox.stats.others")) {
 								if(args[1] != "") 
 									sender.sendMessage(PvPBoxConfig.getOfflinePlayerPvPBoxStats(args[1], false));
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+							} else p.sendMessage(PVPBOX_PERM);
 						} else if(args[0].equalsIgnoreCase("rank")) {
 							int i = 0;
 							try {i = Integer.valueOf(args[1]);}
-							catch(Exception e) {sender.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous devez indiquer un nombre en 2è argument !");}
+							catch(Exception e) {sender.sendMessage(PVPBOX_PREF + "§cVous devez indiquer un nombre en 2è argument !");}
 							if(i >= 5) {
 								sender.sendMessage(PvPBoxConfig.getPvPBoxRank(i));
-							} else sender.sendMessage("§6[PvPBox] " + ChatColor.RED + "La limite du classement doit être supérieure ou égale à 5.");
+							} else sender.sendMessage(PVPBOX_PREF + "§cLa limite du classement doit être supérieure ou égale à 5.");
 						} else if(args[0].equalsIgnoreCase("trank")) {
 							int i = 0;
 							try {i = Integer.valueOf(args[1]);}
-							catch(Exception e) {sender.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous devez indiquer un nombre en 2è argument !");}
+							catch(Exception e) {sender.sendMessage(PVPBOX_PREF + "§cVous devez indiquer un nombre en 2è argument !");}
 							if(i >= 5) {
 								sender.sendMessage(PvPBoxConfig.getRatioPvPBoxRank(i));
-							} else sender.sendMessage("§6[PvPBox] " + ChatColor.RED + "La limite du classement doit être supérieure ou égale à 5.");
+							} else sender.sendMessage(PVPBOX_PREF + "§cLa limite du classement doit être supérieure ou égale à 5.");
 						}
 					} else if(args.length == 0) {
-						p.sendMessage("§6[PvPBox] " + ChatColor.YELLOW + "Aide en cours d'édition ...");
+						p.sendMessage(PVPBOX_PREF + "§eAide en cours d'édition ...");
 					} else return false;
-				} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Vous devez être dans la map event pour effectuer cette commande.");
+				} else p.sendMessage(PVPBOX_PREF + "§cVous devez être dans la map event pour effectuer cette commande.");
 			} else {
 				if(!(sender instanceof Player)) {
 					if(args.length == 1) {
@@ -162,10 +174,10 @@ public class Antykacraft extends JavaPlugin {
 						if(p != null) {
 							if(PvPBoxConfig.getDefaultPvPBoxArena() != "none") {
 								p.openInventory(PvPBoxGui.pvpBoxKitSelector(p));
-							} else p.sendMessage("§6[PvPBox] " + ChatColor.RED + "Il n'y a aucune arène PvPBox de séléctionnée ...");
+							} else p.sendMessage(PVPBOX_PREF + "§cIl n'y a aucune arène PvPBox de séléctionnée ...");
 						}
-					} else sender.sendMessage(prefix + ChatColor.RED + "Commande inconnue.");
-				} else sender.sendMessage(prefix + ChatColor.RED + "Vous devez être un joueur pour executer cette commande.");
+					} else sender.sendMessage(prefix + "§cCommande inconnue.");
+				} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
 			}
 		} 
 		/* AntykaStuff */
@@ -176,7 +188,7 @@ public class Antykacraft extends JavaPlugin {
 					if(p != null) StuffKits.pvpStuff(p);
 				}
 			} else {
-				if(sender.isOp() == true) sender.sendMessage(prefix + ChatColor.RED + "La commande doit être executée via command block.");
+				if(sender.isOp() == true) sender.sendMessage(prefix + "§cLa commande doit être executée via command block.");
 			}
 		} else if(cmd.getName().equalsIgnoreCase("vip")) {
 			if(sender instanceof Player) {
@@ -200,33 +212,33 @@ public class Antykacraft extends JavaPlugin {
 								StuffKits.vipArmor("diamond", giveIt);
 								break;
 							default:
-								p.sendMessage(prefix + ChatColor.RED + "Erreur : Le type d'armure spécifié est incorrect.");
+								p.sendMessage(prefix + "§cErreur : Le type d'armure spécifié est incorrect.");
 								break;	
 							}
-							p.sendMessage(prefix + ChatColor.GREEN + giveIt.getName() + " à bien reçu son armure VIP !");
+							p.sendMessage(prefix + "§a" + giveIt.getName() + " a bien reçu son armure VIP !");
 						} else {
-							sender.sendMessage(prefix + ChatColor.RED + "Erreur : Le joueur spécifié n'est pas en ligne.");
+							sender.sendMessage(prefix + "§cErreur : Le joueur spécifié n'est pas en ligne.");
 						}
 					} else {
-						p.sendMessage(prefix + ChatColor.RED + "Erreur : Nombre d'argument incorrect.");
+						p.sendMessage(prefix + "§cErreur : Nombre d'argument incorrect.");
 					}
-				} else p.sendMessage(ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
+				} else p.sendMessage("§cTu n'as pas la permission d'utiliser cette commande.");
 			}
 		}
 		/* Antykacraft Général */
 
 		else if(cmd.getName().equalsIgnoreCase("warnr")) {
 			if(sender.hasPermission("antykacraft.reloadwarn")) {
-				Bukkit.broadcastMessage("§6[Antykacraft] " + ChatColor.YELLOW + "Un reload va avoir lieu veuillez vous deconnecter s'il vous plaît merci.");
-			} else sender.sendMessage(prefix + ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
+				Bukkit.broadcastMessage("§6[Antykacraft] " + "§eUn reload va avoir lieu veuillez vous deconnecter s'il vous plaît merci.");
+			} else sender.sendMessage(prefix + "§cTu n'as pas la permission d'utiliser cette commande.");
 		} else if(cmd.getName().equalsIgnoreCase("aide")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
 				if(p.hasPermission("antykacraft.aide")) {
 					MessageSender.sendMessage(p, new ChatPart("Bienvenue sur Antykacraft ! Pour devenir membre, tu dois faire ta candidature sur "),
 							new ChatPart("le Forum", JSONChatColor.AQUA, new JSONChatFormat[] {JSONChatFormat.UNDERLINED}).setClickEvent(JSONChatClickEventType.OPEN_URL, "http://www.antykacraft.forumactif.org"));
-					p.sendMessage(ChatColor.AQUA + "Bon jeu sur Antykacraft !");
-				} else p.sendMessage(prefix + ChatColor.RED + "Cette commande est inutile aux membres.");
+					p.sendMessage("§cBon jeu sur Antykacraft !");
+				} else p.sendMessage(prefix + "§cCette commande est inutile aux membres.");
 			}
 		} else if(cmd.getName().equalsIgnoreCase("ping")) {
 			if(sender instanceof Player) {
@@ -234,44 +246,41 @@ public class Antykacraft extends JavaPlugin {
 				if(p.hasPermission("antykacraft.ping")) { // Ping du sender
 					if(args.length == 0) {
 						int ping = ((CraftPlayer) p).getHandle().ping;
-						p.sendMessage(prefix + ChatColor.GREEN + "Votre ping est de " + ping + "ms.");
+						p.sendMessage(prefix + "§aVotre ping est de " + ping + "ms.");
 					} else if(args.length == 1) {
 						if(p.hasPermission("antykacraft.ping.others")) { // Ping d'un autre joueur
 							Player pinged = Bukkit.getPlayer(args[0]);
 							if(pinged != null) {
 								int ping = ((CraftPlayer) p).getHandle().ping;
-								p.sendMessage(prefix + ChatColor.GREEN + "Le ping de " + pinged.getName() + " est de " + ping + "ms.");
-							} else p.sendMessage(prefix + ChatColor.RED + "Le joueur spécifié n'est pas en ligne.");
-						} else sender.sendMessage(prefix + ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
-					} else sender.sendMessage(prefix + ChatColor.RED + "Nombre d'arguments incorrect.");
-				} else sender.sendMessage(prefix + ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
-			} else sender.sendMessage(prefix + ChatColor.RED + "Vous devez être un joueur pour executer cette commande.");
+								p.sendMessage(prefix + "§aLe ping de " + pinged.getName() + " est de " + ping + "ms.");
+							} else p.sendMessage(prefix + "§cLe joueur spécifié n'est pas en ligne.");
+						} else sender.sendMessage(prefix + "§cTu n'as pas la permission d'utiliser cette commande.");
+					} else sender.sendMessage(prefix + "§cNombre d'arguments incorrect.");
+				} else sender.sendMessage(prefix + "§cTu n'as pas la permission d'utiliser cette commande.");
+			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
 		} else if(cmd.getName().equalsIgnoreCase("raid")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
 				if(p.hasPermission("antykacraft.raid")) {
 					if(args.length == 1) {
-						if(City.isCity(args[0])) {
-							Utils.raid(p, args[0]);
+						if(City.isFaction(args[0])) {
+							City.raid(p, City.getPlayerCity(p), City.getCityByFaction(args[0]));
 						} else if(args[0].equalsIgnoreCase("reset")) { // Reset des raids
 							if(p.hasPermission("antykacraft.raid.reset")) {
 								for(City c : City.cities) c.setRaid(false);
-								p.sendMessage(prefix + ChatColor.GREEN + "Les raids d'aujourd'hui ont été reset !");
-							} else p.sendMessage(prefix + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+								p.sendMessage(prefix + "§aLes raids d'aujourd'hui ont été reset !");
+							} else p.sendMessage(PERM);
 						} else if(args[0].equalsIgnoreCase("stop")) {
 							if(p.hasPermission("antykacraft.raid.stop")) {
-								Bukkit.getScheduler().cancelTasks(this);
-								Timers.sb.clearSlot(DisplaySlot.SIDEBAR);
-								for(Player pl : Bukkit.getOnlinePlayers()) pl.setScoreboard(sbManager.getMainScoreboard());
-								try{Timers.sb.getObjective("time").unregister();}
-								catch(Exception e){}
-								finally{p.sendMessage(prefix + ChatColor.GREEN + "Le raid à été stoppé avec succés !");}
-								Bukkit.broadcastMessage(prefix + ChatColor.YELLOW + "Fin du raid forcé par " + p.getName());
-							} else p.sendMessage(prefix + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
-						} else p.sendMessage(prefix + ChatColor.RED + "Ville inconnue.");
-					} else p.sendMessage(prefix + ChatColor.RED + "Erreur : /raid <ville>");
-				} else p.sendMessage(prefix + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
-			} else sender.sendMessage(prefix + ChatColor.RED + "Vous devez être un joueur pour executer cette commande.");
+								for(Raid r : Timers.raids) r.setFinish();
+								Timers.endRaid();
+								p.sendMessage(prefix + "§aLe raid à été stoppé avec succés !");
+								Bukkit.broadcastMessage(prefix + "§eFin du raid forcé par " + p.getName());
+							} else p.sendMessage(PERM);
+						} else p.sendMessage(prefix + "§cFaction inconnue.");
+					} else p.sendMessage(prefix + "§cErreur : /raid <faction>");
+				} else p.sendMessage(PERM);
+			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
 		} else if(cmd.getName().equalsIgnoreCase("timer")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
@@ -280,13 +289,13 @@ public class Antykacraft extends JavaPlugin {
 						if(args.length == 1) {
 							int i = 0;
 							try{i = Integer.parseInt(args[0]);}
-							catch(Exception e){p.sendMessage(prefix + ChatColor.RED + "L'argument doit être un entier !");}
+							catch(Exception e){p.sendMessage(prefix + "§cL'argument doit être un entier !");}
 							Timers.startEventTimer(p, i);
-							p.sendMessage(prefix + ChatColor.GREEN + " Lancement du timer pour " + i + " minute(s).");
-						} else p.sendMessage(prefix + ChatColor.RED  +  "Nombre d'arguments incorrect.");
-					} else p.sendMessage(prefix + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
-				} else p.sendMessage(prefix + ChatColor.RED  + "Tu dois être dans la map event pour éxécuter cette commande.");
-			} else sender.sendMessage(prefix + ChatColor.RED + "Vous devez être un joueur pour executer cette commande.");
+							p.sendMessage(prefix + "§a Lancement du timer pour " + i + " minute(s).");
+						} else p.sendMessage(prefix + "§cNombre d'arguments incorrect.");
+					} else p.sendMessage(PERM);
+				} else p.sendMessage(prefix + "§cTu dois être dans la map event pour éxécuter cette commande.");
+			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
 		} else if(cmd.getName().equalsIgnoreCase("stoptimer")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
@@ -297,10 +306,10 @@ public class Antykacraft extends JavaPlugin {
 						for(Player pl : Bukkit.getOnlinePlayers()) pl.setScoreboard(sbManager.getMainScoreboard());
 						try{Timers.sb.getObjective("time").unregister();}
 						catch(Exception e){}
-						finally{p.sendMessage(prefix + ChatColor.GREEN + "Le timer à été stoppé avec succés !");}
-					} else p.sendMessage(prefix + ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
-				} else p.sendMessage(prefix + ChatColor.RED  + "Tu dois être dans la map event pour éxécuter cette commande.");
-			} else sender.sendMessage(prefix + ChatColor.RED + "Vous devez être un joueur pour executer cette commande.");
+						finally{p.sendMessage(prefix + "§aLe timer à été stoppé avec succés !");}
+					} else p.sendMessage(PERM);
+				} else p.sendMessage(prefix + "§cTu dois être dans la map event pour éxécuter cette commande.");
+			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
 		} else if(cmd.getName().equalsIgnoreCase("faction")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
@@ -314,7 +323,7 @@ public class Antykacraft extends JavaPlugin {
 								Player pla = (Player) pl;
 								pla.sendMessage("§a[" + p.getName() + " ► " + t.getDisplayName() + "]§r " + msgStr);
 							} catch(Exception e) {}
-						} log.info("[" + p.getName() + " ► " + t.getDisplayName() + "]" + msgStr);
+						} log.info("[" + p.getName() + " ► " + City.teamDisplay.get(t) + "]" + msgStr);
 					} catch(NullPointerException npe) {
 						p.sendMessage("§6[AntykaCraft] §cVous n'appartenez à aucune faction !");
 					}
@@ -359,7 +368,7 @@ public class Antykacraft extends JavaPlugin {
 									p.sendMessage(prefix + "§cVeuillez indiquer un nombre ...");
 								}
 
-							} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
+							} else p.sendMessage(PERM);
 						} else if(args[0].equalsIgnoreCase("take")) {
 							if(p.hasPermission("antykacraft.faction.account.take")) {
 								try {
@@ -382,17 +391,17 @@ public class Antykacraft extends JavaPlugin {
 								} catch(IllegalArgumentException iae) {
 									p.sendMessage(prefix + "§cVeuillez indiquer un nombre ...");
 								}
-							} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
+							} else p.sendMessage(PERM);
 						}
 					} else if(args.length == 1) {
 						if(args[0].equalsIgnoreCase("give")) {
 							if(p.hasPermission("antykacraft.faction.account.give")) {
 								p.sendMessage(prefix + "§cVeuillez indiquer la somme à donner à la faction.");
-							} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
+							} else p.sendMessage(PERM);
 						} else if(args[0].equalsIgnoreCase("take")) {
 							if(p.hasPermission("antykacraft.faction.account.take")) {
 								p.sendMessage(prefix + "§cVeuillez indiquer la somme à prendre à la faction.");
-							} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
+							} else p.sendMessage(PERM);
 						} else p.sendMessage(prefix + "§cArgument inconnu ...");
 					}
 				} catch(NullPointerException npe) {
@@ -425,7 +434,7 @@ public class Antykacraft extends JavaPlugin {
 							} else p.sendMessage(prefix + "§cVeuillez entrer un message !");
 						} else p.sendMessage(prefix + "§cArgument inconnu.");
 					} else p.sendMessage(prefix + "§cMauvaise utilisation.");
-				} else p.sendMessage(prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.");
+				} else p.sendMessage(PERM);
 			}
 		} /*else if(cmd.getName().equalsIgnoreCase("mapbuild")) {
 			if(sender instanceof Player) {
@@ -452,6 +461,29 @@ public class Antykacraft extends JavaPlugin {
 				}
 			}
 		}*/
+		else if(cmd.getName().equalsIgnoreCase("bowspleef")) {
+			if(!(sender instanceof Player)) {
+				if(args.length == 1) {
+					try {
+						Player p = Bukkit.getPlayer(args[0]);
+						StuffKits.bowSpleef(p);
+					} catch(Exception e) {}
+				}
+			}
+		} else if(cmd.getName().equalsIgnoreCase("jobs")) { // Remove jobs.join
+			if(!(sender instanceof Player)) {
+				if(args.length == 1) {
+					if(args[0].equalsIgnoreCase("join")) {
+						Player p = (Player) sender;
+						p.sendMessage("§cVous n'avez pas la permission.");
+					}
+				}
+			}
+		}
 		return true;	
 	}
+
+	String PVPBOX_PREF = "§6[PvPBox] ";
+	String PVPBOX_PERM = PVPBOX_PREF + "§6Vous n'avez pas la permission d'utiliser cette commande.";
+	String PERM = prefix + "§cVous n'avez pas la permission d'éxecuter cette commande.";
 }

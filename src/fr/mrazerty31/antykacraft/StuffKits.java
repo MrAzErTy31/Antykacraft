@@ -1,6 +1,9 @@
 package fr.mrazerty31.antykacraft;
 
+import java.util.Arrays;
+
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -31,6 +34,8 @@ public class StuffKits {
 		pInv.addItem(new ItemStack(Material.DIAMOND_SWORD));
 		pInv.addItem(new ItemStack(Material.BOW));
 		pInv.addItem(new ItemStack(Material.ARROW, 64));
+		pInv.addItem(new ItemStack(Material.ARROW, 64));
+		pInv.addItem(new ItemStack(Material.ARROW, 64));
 		pInv.setArmorContents(new ItemStack[] {
 				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_BOOTS), enchants, levels), 
 				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_LEGGINGS), enchants, levels), 
@@ -39,5 +44,16 @@ public class StuffKits {
 		p.setHealth(p.getMaxHealth());
 		p.setFoodLevel(20);
 		p.sendMessage(ChatColor.GREEN + "Tu as bien reçu le stuff PvP");
+	}
+	
+	public static void bowSpleef(Player p) {
+		PlayerInventory pInv = p.getInventory();
+		pInv.addItem(ItemLib.addEnchantments(ItemLib.addDisplayName(new ItemStack(Material.BOW), "§4§lBoom Bow"),
+				new Enchantment[] {Enchantment.ARROW_FIRE, Enchantment.ARROW_INFINITE}, new int[] {1, 1}));
+		pInv.addItem(new ItemStack(Material.ARROW));
+		ItemStack[] armor = ItemLib.getFullColoredArmor(Color.RED);
+		for(ItemStack it : armor)
+			ItemLib.addLore(it, Arrays.asList(new String[] {ChatColor.GRAY + "Unbreakable"}));
+		pInv.setArmorContents(armor);
 	}
 }

@@ -3,27 +3,27 @@ package fr.mrazerty31.antykacraft.listener;
 import java.util.Iterator;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 
 import fr.mrazerty31.antykacraft.Antykacraft;
+import fr.mrazerty31.antykacraft.utils.City;
 import fr.mrazerty31.antykacraft.utils.ConfigManager;
+import fr.mrazerty31.antykacraft.utils.Raid;
 
 public class AntykacraftListener implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player p = event.getPlayer();
-		if(p.getName().equalsIgnoreCase("Susucre_")) 
-			p.setPlayerListName(ChatColor.DARK_GREEN + "Susucre");
-		else if(p.getName().equalsIgnoreCase("Illinor_"))
-			p.setPlayerListName(ChatColor.DARK_GREEN + "Illinor");
 		if(!Antykacraft.manload) {
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "manload");
 			Antykacraft.manload = true;
@@ -62,5 +62,45 @@ public class AntykacraftListener implements Listener {
 			}
 		}
 	}
-	*/
+	 */
+
+	@EventHandler
+	public void armorUnbreak(EntityDamageByEntityEvent e) {
+		if((e.getDamager() instanceof Player) && (e.getEntity() instanceof Player)) {
+			Player p = (Player) e.getEntity();
+			Player d = (Player) e.getDamager();
+			if(isInEventWorld(p) && isInEventWorld(d)) {
+				try {
+					for(ItemStack it : p.getInventory().getArmorContents()) {
+						it.setDurability(it.getDurability());
+					}
+				} catch(Exception ex) {}
+			}
+		}
+	}
+
+	@EventHandler
+	public void killOnRaid(PlayerDeathEvent e) {
+		if(e.getEntity().getKiller() instanceof Player) {
+			Player a = e.getEntity();
+			Player b = a.getKiller();
+			if(City.getPlayerCity(a).isOnRaid() && City.getPlayerCity(b).isOnRaid()) {
+				City cB = City.getPlayerCity(b);
+				int currentKills = Raid.raidKills.get(cB);
+				try {
+					Raid.raidKills.remove(cB);
+				} catch(Exception ex) {
+					ex.printStackTrace();
+				} finally {
+					Raid.raidKills.put(cB, currentKills + 1);
+				}
+			}
+		}
+	}
+
+	public static boolean isInEventWorld(Player p) {
+		if(p.getWorld().getName().equalsIgnoreCase("event")) 
+			return true;
+		else return false;
+	}
 }

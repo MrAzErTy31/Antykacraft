@@ -12,8 +12,10 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 public class ItemLib extends JavaPlugin
 {
@@ -72,20 +74,45 @@ public class ItemLib extends JavaPlugin
 		return head;
 	}
 
-	public static ItemStack addCustomPotionEffect(ItemStack i, PotionEffectType p, int d, int a) {
+	public static ItemStack addCustomPotionEffect(PotionEffectType p, int d, int a, boolean s) {
+		ItemStack i = new ItemStack(Material.POTION);
+		Potion po = Potion.fromItemStack(i);
+		po.setSplash(s);
 		PotionMeta pM = (PotionMeta) i.getItemMeta();
 		PotionEffect pE = new PotionEffect(p, d, a);
 		pM.addCustomEffect(pE, false);
 		i.setItemMeta(pM);
+		po.apply(i);
 		return i;
 	}
 	
-	public static ItemStack setCustomPotionEffect(ItemStack i, PotionEffectType p, int d, int a) {
+	public static ItemStack setCustomPotionEffect(PotionEffectType p, int d, int a, PotionType pT, boolean s) {
+		ItemStack i = new ItemStack(Material.POTION);
+		Potion po = Potion.fromItemStack(i);
+		po.setSplash(s);
+		po.setType(pT);
 		PotionMeta pM = (PotionMeta) i.getItemMeta();
 		PotionEffect pE = new PotionEffect(p, d, a);
 		pM.addCustomEffect(pE, true);
-		i.setItemMeta(pM);
+		po.apply(i);
+		i.setItemMeta(pM);	
 		return i;
+	}
+	
+	public static ItemStack[] getFullColoredArmor(Color c) {
+		String[] s = new String[] {"BOOTS", "LEATHER", "CHESTPLATE", "HELMET"};
+		ItemStack[] it = new ItemStack[4];
+		for(int i = 0; i < 4; i++)
+			it[i] = colorLeatherArmor(new ItemStack(Material.getMaterial("LEATHER_" + s[i])), c);
+		return it;
+	}
+	
+	public static ItemStack[] getFullColoredArmor(Color c, Enchantment[] e, int[] l) {
+		String[] s = new String[] {"BOOTS", "LEATHER", "CHESTPLATE", "HELMET"};
+		ItemStack[] it = new ItemStack[4];
+		for(int i = 0; i < 4; i++)
+			it[i] = addEnchantments(colorLeatherArmor(new ItemStack(Material.getMaterial("LEATHER_" + s[i])), c), e, l);
+		return it;
 	}
 	
 	/* Formatting Utils */

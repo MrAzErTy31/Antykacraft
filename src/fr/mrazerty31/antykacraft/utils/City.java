@@ -1,11 +1,11 @@
 package fr.mrazerty31.antykacraft.utils;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -21,10 +21,10 @@ public class City {
 
 	/* Fields */
 
-	private String name, displayName, empire;
+	private String name, displayName, empire, faction, alternateName;
 	private ChatColor color;
 	private Team team;
-	private boolean raid;
+	private boolean raid, isOnRaid;
 	private double money;
 	private int account;
 	public static List<City> cities = new ArrayList<City>();
@@ -32,20 +32,26 @@ public class City {
 
 	/* Constructors */
 
-	public City(String name, String displayName, String empire, ChatColor color) {
+	public City(String name, String displayName, String empire, String faction, String alternateName, ChatColor color) {
 		this.setName(name);
 		this.setDisplayName(displayName);
 		this.setRaid(false);
+		this.setisOnRaid(false);
 		this.setEmpire(empire);
+		this.setFactionName(faction);
+		this.setAlternateName(alternateName);
 		this.setColor(color);
 	}
 
-	public City(String name, String displayName, Team team, String empire, ChatColor color) {
+	public City(String name, String displayName, Team team, String empire, String faction, String alternateName, ChatColor color) {
 		this.setName(name);
 		this.setDisplayName(displayName);
 		this.setTeam(team);
 		this.setRaid(false);
+		this.setisOnRaid(false);
 		this.setEmpire(empire);
+		this.setFactionName(faction);
+		this.setAlternateName(alternateName);
 		this.setColor(color);
 	}
 
@@ -91,11 +97,10 @@ public class City {
 		double totalAmount = 0;
 		for(OfflinePlayer p : team.getPlayers()) {
 			try {
-				BigDecimal money = Economy.getMoneyExact(p.getName());
-				totalAmount += money.doubleValue();
-			} catch (UserDoesNotExistException e) {
-				e.printStackTrace();
-			}
+				@SuppressWarnings("deprecation")
+				double money = Economy.getMoney(p.getName().toLowerCase());
+				totalAmount += money;
+			} catch (UserDoesNotExistException e) {}
 		}
 		money = totalAmount;
 	}
@@ -125,15 +130,15 @@ public class City {
 	public void updateAccount() {
 		this.account = ConfigManager.getCityMoney(this);
 	}
-	
+
 	public String getEmpire() {
 		return this.empire;
 	}
-	
+
 	public void setEmpire(String empire) {
 		this.empire = empire;
 	}
-	
+
 	public ChatColor getColor() {
 		return color;
 	}
@@ -142,12 +147,44 @@ public class City {
 		this.color = color;
 	}
 
+	public void setisOnRaid(boolean b) {
+		this.isOnRaid = b;
+	}
+
+	public boolean isOnRaid() {
+		return this.isOnRaid;
+	}
+	
+	public String getFactionName() {
+		return this.faction;
+	}
+	
+	public void setFactionName(String faction) {
+		this.faction = faction;
+	}
+	
+	public String getAlternateName() {
+		return this.alternateName;
+	}
+	
+	public void setAlternateName(String alternateName) {
+		this.alternateName = alternateName;
+	}
+
 	/* Static Methods */
 
 	public static City getCity(String name) {
 		City city = null;
 		for(City c : cities) {
 			if(c.getName().equalsIgnoreCase(name))
+				city = c;
+		} return city;
+	}
+	
+	public static City getCityByFaction(String faction) {
+		City city = null;
+		for(City c : cities) {
+			if(c.getFactionName().equalsIgnoreCase(faction))
 				city = c;
 		} return city;
 	}
@@ -163,7 +200,16 @@ public class City {
 	public static City getPlayerCity(Player p) {
 		City c = null;
 		for(City ct : cities) {
-			if(ct.getTeam().equals(Teams.getTeam(p))) {
+			if(ct.getTeam().getPlayers().contains(p)) {
+				c = ct;
+			}
+		} return c;
+	}
+
+	public static City getCityByTeam(Team t) {
+		City c = null;
+		for(City ct : cities) {
+			if(ct.getTeam().equals(t)) {
 				c = ct;
 			}
 		} return c;
@@ -173,6 +219,14 @@ public class City {
 		boolean is = false;
 		for(City ci : City.cities)
 			if(ci.getName().equalsIgnoreCase(name)) 
+				is = true;
+		return is;
+	}
+	
+	public static boolean isFaction(String faction) {
+		boolean is = false;
+		for(City ci : City.cities)
+			if(ci.getFactionName().equalsIgnoreCase(faction)) 
 				is = true;
 		return is;
 	}
@@ -194,14 +248,41 @@ public class City {
 		return message;
 	}
 
+	public static void raid(Player p, City a, City b) {
+		if(!a.equals(b)) {
+			if(!a.hasRaid()) {
+				if(!a.isOnRaid) {
+					Timers.raid(p, a, b);
+					Raid.raidKills.put(a, 0);
+					Raid.raidKills.put(b, 0);
+					Bukkit.broadcastMessage(Antykacraft.prefix + "§aLes" + a.getFactionName() + " lancent un raid contre " + b.getAlternateName() + "!");
+				} else p.sendMessage(Antykacraft.prefix + "§cVous êtes déjà dans un raid !");
+			} else p.sendMessage(Antykacraft.prefix + "§cVotre faction a déjà raid aujourd'hui !");
+		} else p.sendMessage(Antykacraft.prefix + "§cVous ne pouvez pas raider votre propre faction !");
+	}
+
+	/*try {
+			if(!City.getPlayerCity(p).isOnRaid()) {
+			City c = City.getCity(n.toLowerCase());
+			if(!c.equals(City.getPlayerCity(p))) {
+				Bukkit.broadcastMessage(Antykacraft.prefix + "§a" + p.getName() + "(" + City.getPlayerCity(p).getDisplayName() + 
+						") lance un raid contre " + c.getDisplayName() + " !");
+				Timers.raid(p, c, 20, 0);
+				c.setRaid(true);
+			} else p.sendMessage(Antykacraft.prefix + ChatColor.RED + "Vous ne pouvez pas raid contre votre faction !");
+			}
+		} catch(Exception e) {p.sendMessage(Antykacraft.prefix + "§cVille inconnue.");
+		e.printStackTrace();
+	 */
+
 	public static void init() {
 		Scoreboard sb = Antykacraft.sbManager.getMainScoreboard();
-		City tikal = new City("tikal", "Tikal", sb.getTeam("Mayas"), "maya", ChatColor.DARK_GREEN);
+		City tikal = new City("tikal", "Tikal", sb.getTeam("Mayas"), "maya", "Mayas", "les Mayas", ChatColor.DARK_GREEN);
 		cities.add(tikal);
-		City thebes = new City("thebes", "Thèbes", sb.getTeam("Egypte"), "égyptien", ChatColor.BLUE);
+		City thebes = new City("memphis", "Memphis", sb.getTeam("Egypte"), "égyptien", "Egyptiens", "L'Egypte", ChatColor.BLUE);
 		cities.add(thebes);
-		City athenes = new City("athenes", "Athènes", sb.getTeam("Grece"), "grec", ChatColor.YELLOW);
-		cities.add(athenes);
+		City rome = new City("rome", "Rome", sb.getTeam("Rome"), "romain", "Romains", "Rome", ChatColor.RED);
+		cities.add(rome);
 		for(City c : cities) {
 			c.updateMoney();
 			c.updateAccount();
@@ -210,7 +291,7 @@ public class City {
 		/* Others */
 
 		teamDisplay.put(sb.getTeam("Mayas"), "Tikal");
-		teamDisplay.put(sb.getTeam("Egypte"), "Thèbes");
-		teamDisplay.put(sb.getTeam("Grecs"), "Athènes");
+		teamDisplay.put(sb.getTeam("Egypte"), "Memphis");
+		teamDisplay.put(sb.getTeam("Rome"), "Rome");
 	}
 }

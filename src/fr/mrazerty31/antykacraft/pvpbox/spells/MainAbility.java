@@ -1,4 +1,4 @@
-package fr.mrazerty31.antykacraft.pvpbox;
+package fr.mrazerty31.antykacraft.pvpbox.spells;
 
 import org.bukkit.entity.Player;
 
