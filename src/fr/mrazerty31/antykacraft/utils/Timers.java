@@ -24,6 +24,7 @@ public class Timers {
 		sb = Antykacraft.sbManager.getNewScoreboard();
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void startEventTimer(final Player p, int c) {
 		/* Première phase */
 		final int t = c * 60; // Conversion en secondes
@@ -58,6 +59,7 @@ public class Timers {
 		}, 0L, 20L);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void raid(Player p, City a, City b) {
 		int m = 20, s = 0;
 		Raid raid = new Raid(p, a, b);
@@ -76,7 +78,7 @@ public class Timers {
 				for(OfflinePlayer pl : t.getPlayers()) {
 					te.addPlayer(pl);
 				} for(Player pla : Bukkit.getOnlinePlayers()) {
-					pla.setPlayerListName(p.getName());
+					pla.setPlayerListName(pla.getName());
 				}
 			} catch(Exception ex) {}
 		}
@@ -100,9 +102,9 @@ public class Timers {
 		Objective time = sb.registerNewObjective("raid", "dummy");
 		time.setDisplayName("§6§lRaid");
 		time.setDisplaySlot(DisplaySlot.SIDEBAR);
-		time.getScore("§6" + a.getFactionName() + " (" + Raid.raidKills.get(a) + " kills)").setScore(5);
+		time.getScore("§6" + a.getAlternateName() + " (" + Raid.raidKills.get(a) + " kills)").setScore(5);
 		time.getScore("§6---- VS ----").setScore(4);
-		time.getScore("§6" + b.getFactionName() + " (" + Raid.raidKills.get(b) + " kills)").setScore(3);
+		time.getScore("§6" + b.getAlternateName() + " (" + Raid.raidKills.get(b) + " kills)").setScore(3);
 		time.getScore("§6--------").setScore(2);
 		time.getScore("§6>> " + ChatColor.AQUA + formatTime(min, sec)).setScore(1);
 		for(Player pl : Bukkit.getWorld("world").getPlayers())

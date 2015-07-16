@@ -27,20 +27,16 @@ public class StuffKits {
 
 	public static void pvpStuff(Player p) {
 		PlayerInventory pInv = p.getInventory();
-		Enchantment[] enchants = new Enchantment[] {Enchantment.DURABILITY};
-		int[] levels = new int[] {3};
+		Enchantment[] enchants = new Enchantment[] {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.DURABILITY};
+		int[] levels = new int[] {1, 255};
 
 		pInv.clear();
-		pInv.addItem(new ItemStack(Material.DIAMOND_SWORD));
-		pInv.addItem(new ItemStack(Material.BOW));
-		pInv.addItem(new ItemStack(Material.ARROW, 64));
-		pInv.addItem(new ItemStack(Material.ARROW, 64));
-		pInv.addItem(new ItemStack(Material.ARROW, 64));
-		pInv.setArmorContents(new ItemStack[] {
-				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_BOOTS), enchants, levels), 
-				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_LEGGINGS), enchants, levels), 
-				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_CHESTPLATE), enchants, levels), 
-				ItemLib.addEnchantments(new ItemStack(Material.DIAMOND_HELMET), enchants, levels)});
+		pInv.addItem(ItemLib.addEnchantments(new ItemStack(Material.IRON_SWORD), new Enchantment[] {Enchantment.DAMAGE_ALL,  Enchantment.DURABILITY}, new int[] {0, 255}));
+		ItemStack helmet = ItemLib.addEnchantments(new ItemStack(Material.IRON_HELMET), enchants, levels),
+				chestplate = ItemLib.addEnchantments(new ItemStack(Material.IRON_CHESTPLATE), enchants, levels),
+				leggings = ItemLib.addEnchantments(new ItemStack(Material.IRON_LEGGINGS), enchants, levels),
+				boots = ItemLib.addEnchantments(new ItemStack(Material.IRON_BOOTS), enchants, levels);
+		pInv.setArmorContents(new ItemStack[] {boots, leggings, chestplate, helmet});
 		p.setHealth(p.getMaxHealth());
 		p.setFoodLevel(20);
 		p.sendMessage(ChatColor.GREEN + "Tu as bien reçu le stuff PvP");

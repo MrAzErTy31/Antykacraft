@@ -97,6 +97,18 @@ public class AntykacraftListener implements Listener {
 			}
 		}
 	}
+	
+	/*
+	@EventHandler
+	public void playerMoveOverGravel(PlayerMoveEvent e) {
+		Player p = e.getPlayer();
+		if(p.getWorld().getName().equalsIgnoreCase("world")) {
+			if(p.getLocation().getBlock().getRelative(BlockFace.DOWN).getType()== Material.GRAVEL) {
+				PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, 1, 10);
+				p.addPotionEffect(speed);
+			}
+		}
+	}*/
 
 	public static boolean isInEventWorld(Player p) {
 		if(p.getWorld().getName().equalsIgnoreCase("event")) 

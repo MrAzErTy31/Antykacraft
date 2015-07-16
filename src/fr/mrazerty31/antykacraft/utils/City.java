@@ -93,13 +93,15 @@ public class City {
 		return this.money;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void updateMoney() {
 		double totalAmount = 0;
 		for(OfflinePlayer p : team.getPlayers()) {
 			try {
-				@SuppressWarnings("deprecation")
-				double money = Economy.getMoney(p.getName().toLowerCase());
-				totalAmount += money;
+				if(!p.isBanned()) {
+					double money = Economy.getMoney(p.getName().toLowerCase());
+					totalAmount += money;
+				}
 			} catch (UserDoesNotExistException e) {}
 		}
 		money = totalAmount;
@@ -154,19 +156,19 @@ public class City {
 	public boolean isOnRaid() {
 		return this.isOnRaid;
 	}
-	
+
 	public String getFactionName() {
 		return this.faction;
 	}
-	
+
 	public void setFactionName(String faction) {
 		this.faction = faction;
 	}
-	
+
 	public String getAlternateName() {
 		return this.alternateName;
 	}
-	
+
 	public void setAlternateName(String alternateName) {
 		this.alternateName = alternateName;
 	}
@@ -180,7 +182,7 @@ public class City {
 				city = c;
 		} return city;
 	}
-	
+
 	public static City getCityByFaction(String faction) {
 		City city = null;
 		for(City c : cities) {
@@ -197,6 +199,7 @@ public class City {
 		} return index;
 	}
 
+	@SuppressWarnings("deprecation")
 	public static City getPlayerCity(Player p) {
 		City c = null;
 		for(City ct : cities) {
@@ -222,7 +225,7 @@ public class City {
 				is = true;
 		return is;
 	}
-	
+
 	public static boolean isFaction(String faction) {
 		boolean is = false;
 		for(City ci : City.cities)
@@ -255,7 +258,7 @@ public class City {
 					Timers.raid(p, a, b);
 					Raid.raidKills.put(a, 0);
 					Raid.raidKills.put(b, 0);
-					Bukkit.broadcastMessage(Antykacraft.prefix + "§aLes" + a.getFactionName() + " lancent un raid contre " + b.getAlternateName() + "!");
+					Bukkit.broadcastMessage(Antykacraft.prefix + "§a" + a.getAlternateName() + " lancent un raid contre " + b.getAlternateName() + "!");
 				} else p.sendMessage(Antykacraft.prefix + "§cVous êtes déjà dans un raid !");
 			} else p.sendMessage(Antykacraft.prefix + "§cVotre faction a déjà raid aujourd'hui !");
 		} else p.sendMessage(Antykacraft.prefix + "§cVous ne pouvez pas raider votre propre faction !");
@@ -279,9 +282,9 @@ public class City {
 		Scoreboard sb = Antykacraft.sbManager.getMainScoreboard();
 		City tikal = new City("tikal", "Tikal", sb.getTeam("Mayas"), "maya", "Mayas", "les Mayas", ChatColor.DARK_GREEN);
 		cities.add(tikal);
-		City thebes = new City("memphis", "Memphis", sb.getTeam("Egypte"), "égyptien", "Egyptiens", "L'Egypte", ChatColor.BLUE);
+		City thebes = new City("thebes", "Thèbes", sb.getTeam("Egypte"), "égyptien", "Egypte", "L'Egypte", ChatColor.BLUE);
 		cities.add(thebes);
-		City rome = new City("rome", "Rome", sb.getTeam("Rome"), "romain", "Romains", "Rome", ChatColor.RED);
+		City rome = new City("rome", "Rome", sb.getTeam("Rome"), "romain", "Romains", "Grece", ChatColor.RED);
 		cities.add(rome);
 		for(City c : cities) {
 			c.updateMoney();

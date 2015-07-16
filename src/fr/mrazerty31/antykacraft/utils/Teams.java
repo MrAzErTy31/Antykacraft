@@ -14,6 +14,7 @@ public class Teams {
 		return new Team[] {egypte, mayas, grece};
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static Team getTeam(Player p) {
 		return Antykacraft.sbManager.getMainScoreboard().getPlayerTeam(p);
 	}

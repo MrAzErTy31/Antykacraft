@@ -24,6 +24,7 @@ public class KitAbilities {
 
 	public static RightAbility shuriken() {
 		return new RightAbility(6) {
+			@SuppressWarnings("deprecation")
 			public void run(final Player p) {
 				final Item i = p.getWorld().dropItem(p.getEyeLocation(), new ItemStack(Material.NETHER_STAR));
 				i.setPickupDelay(9999);
@@ -147,6 +148,7 @@ public class KitAbilities {
 
 	public static RightAbility revolver() {
 		return new RightAbility(5) {
+			@SuppressWarnings("deprecation")
 			public void run(final Player p) {
 				final Item it = p.getWorld().dropItem(p.getEyeLocation(), new ItemStack(Material.COAL_BLOCK));
 				p.getWorld().playSound(p.getEyeLocation(), Sound.EXPLODE, 1.0F, 1.0F);

@@ -2,18 +2,12 @@ package fr.mrazerty31.antykacraft;
 
 import java.util.logging.Logger;
 
-import me.spoony.JSONChatLib.JSONChatClickEventType;
-import me.spoony.JSONChatLib.JSONChatColor;
-import me.spoony.JSONChatLib.JSONChatFormat;
-import me.spoony.chatlib.ChatPart;
-import me.spoony.chatlib.MessageSender;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -34,6 +28,7 @@ import fr.mrazerty31.antykacraft.pvpbox.spells.SpellUtil;
 import fr.mrazerty31.antykacraft.utils.City;
 import fr.mrazerty31.antykacraft.utils.ConfigManager;
 import fr.mrazerty31.antykacraft.utils.Raid;
+import fr.mrazerty31.antykacraft.utils.Recipes;
 import fr.mrazerty31.antykacraft.utils.Teams;
 import fr.mrazerty31.antykacraft.utils.Timers;
 import fr.mrazerty31.antykacraft.utils.Utils;
@@ -79,6 +74,7 @@ public class Antykacraft extends JavaPlugin {
 		SpellUtil.linkSpells();
 		PvPBoxItems.init();
 		Kit.init();
+		Recipes.init();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -231,15 +227,6 @@ public class Antykacraft extends JavaPlugin {
 			if(sender.hasPermission("antykacraft.reloadwarn")) {
 				Bukkit.broadcastMessage("§6[Antykacraft] " + "§eUn reload va avoir lieu veuillez vous deconnecter s'il vous plaît merci.");
 			} else sender.sendMessage(prefix + "§cTu n'as pas la permission d'utiliser cette commande.");
-		} else if(cmd.getName().equalsIgnoreCase("aide")) {
-			if(sender instanceof Player) {
-				Player p = (Player) sender;
-				if(p.hasPermission("antykacraft.aide")) {
-					MessageSender.sendMessage(p, new ChatPart("Bienvenue sur Antykacraft ! Pour devenir membre, tu dois faire ta candidature sur "),
-							new ChatPart("le Forum", JSONChatColor.AQUA, new JSONChatFormat[] {JSONChatFormat.UNDERLINED}).setClickEvent(JSONChatClickEventType.OPEN_URL, "http://www.antykacraft.forumactif.org"));
-					p.sendMessage("§cBon jeu sur Antykacraft !");
-				} else p.sendMessage(prefix + "§cCette commande est inutile aux membres.");
-			}
 		} else if(cmd.getName().equalsIgnoreCase("ping")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
