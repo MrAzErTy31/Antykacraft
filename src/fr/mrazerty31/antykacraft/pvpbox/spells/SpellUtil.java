@@ -2,8 +2,8 @@ package fr.mrazerty31.antykacraft.pvpbox.spells;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -33,9 +33,10 @@ public class SpellUtil {
 	
 	public static RightAbility flash() {
 		return new RightAbility(((int)40)) {
+			@SuppressWarnings("deprecation")
 			public void run(final Player p) {
 				//ParticleEffect.EXPLODE.display(p.getLocation().add(0, 1.75, 0), 0, 0, 0, 3, 5);
-				p.teleport(p.getLineOfSight((Set<Material>) null, 5).get(4).getLocation());
+				p.teleport(p.getLineOfSight(new HashSet<Byte>(), 5).get(4).getLocation());
 				Bukkit.getScheduler().scheduleSyncDelayedTask(Antykacraft.instance, new Runnable() {
 					public void run() {
 						//ParticleEffect.EXPLODE.display(p.getLocation().add(0, 1.75, 0), 0, 0, 0, 3, 5);

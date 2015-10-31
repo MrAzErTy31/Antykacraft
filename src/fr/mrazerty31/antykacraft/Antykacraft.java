@@ -10,7 +10,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
@@ -25,13 +24,15 @@ import fr.mrazerty31.antykacraft.pvpbox.PvPBoxGui;
 import fr.mrazerty31.antykacraft.pvpbox.PvPBoxItems;
 import fr.mrazerty31.antykacraft.pvpbox.kits.Kit;
 import fr.mrazerty31.antykacraft.pvpbox.spells.SpellUtil;
-import fr.mrazerty31.antykacraft.utils.City;
 import fr.mrazerty31.antykacraft.utils.ConfigManager;
-import fr.mrazerty31.antykacraft.utils.Raid;
 import fr.mrazerty31.antykacraft.utils.Recipes;
 import fr.mrazerty31.antykacraft.utils.Teams;
-import fr.mrazerty31.antykacraft.utils.Timers;
+import fr.mrazerty31.antykacraft.utils.TimeUtil;
 import fr.mrazerty31.antykacraft.utils.Utils;
+import fr.mrazerty31.antykacraft.utils.roleplay.City;
+import fr.mrazerty31.antykacraft.utils.roleplay.Faction;
+import fr.mrazerty31.antykacraft.utils.roleplay.Raid;
+import fr.mrazerty31.antykacraft.utils.timer.EventTimer;
 
 public class Antykacraft extends JavaPlugin {
 
@@ -43,6 +44,7 @@ public class Antykacraft extends JavaPlugin {
 	public static FileConfiguration config;
 
 	private void init() {
+		instance = this;
 		saveDefaultConfig();
 		sbManager = this.getServer().getScoreboardManager();
 		log = Logger.getLogger("Minecraft");
@@ -50,11 +52,9 @@ public class Antykacraft extends JavaPlugin {
 		initClasses();
 		tracking = false;
 		manload = false;
-		instance = this;
-		City.init();
 		this.getServer().getPluginManager().registerEvents(new AntykacraftListener(), this);
 		this.getServer().getPluginManager().registerEvents(new PvPBoxListener(), this);
-		Timers.startAnnounceTimer();
+		TimeUtil.startAnnounceTimer();
 	}
 
 	@Override
@@ -69,12 +69,13 @@ public class Antykacraft extends JavaPlugin {
 	}
 
 	void initClasses() {
-		Timers.init();
 		ConfigManager.init();
 		SpellUtil.linkSpells();
 		PvPBoxItems.init();
 		Kit.init();
 		Recipes.init();
+		Faction.init();
+		City.init();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -250,17 +251,16 @@ public class Antykacraft extends JavaPlugin {
 				Player p = (Player) sender;
 				if(p.hasPermission("antykacraft.raid")) {
 					if(args.length == 1) {
-						if(City.isFaction(args[0])) {
-							City.raid(p, City.getPlayerCity(p), City.getCityByFaction(args[0]));
+						if(Faction.isFaction(args[0])) {
+							Faction.raid(p, Faction.getPlayerFaction(p), Faction.getFaction(args[0].toLowerCase()));
 						} else if(args[0].equalsIgnoreCase("reset")) { // Reset des raids
 							if(p.hasPermission("antykacraft.raid.reset")) {
-								for(City c : City.cities) c.setRaid(false);
+								for(Faction f : Faction.getFactions()) f.setHasRaid(false);
 								p.sendMessage(prefix + "§aLes raids d'aujourd'hui ont été reset !");
 							} else p.sendMessage(PERM);
 						} else if(args[0].equalsIgnoreCase("stop")) {
 							if(p.hasPermission("antykacraft.raid.stop")) {
-								for(Raid r : Timers.raids) r.setFinish();
-								Timers.endRaid();
+								for(Raid r : Raid.getRaids()) r.stop();
 								p.sendMessage(prefix + "§aLe raid à été stoppé avec succés !");
 								Bukkit.broadcastMessage(prefix + "§eFin du raid forcé par " + p.getName());
 							} else p.sendMessage(PERM);
@@ -275,25 +275,26 @@ public class Antykacraft extends JavaPlugin {
 					if(p.getWorld().getName().equals("event")) {
 						if(args.length == 1) {
 							int i = 0;
-							try{i = Integer.parseInt(args[0]);}
-							catch(Exception e){p.sendMessage(prefix + "§cL'argument doit être un entier !");}
-							Timers.startEventTimer(p, i);
-							p.sendMessage(prefix + "§a Lancement du timer pour " + i + " minute(s).");
+							try {
+								i = Integer.parseInt(args[0]);
+								EventTimer timer = new EventTimer(i);
+								timer.start();
+								p.sendMessage(prefix + "§a Lancement du timer pour " + i + " minute(s).");
+							} catch(Exception e) {
+								if(args[0].equalsIgnoreCase("stop")) {
+									try {
+										EventTimer.getCurrentTimer().stop();
+										for(Player pl : Bukkit.getWorld("event").getPlayers()) {
+											pl.sendMessage("§6[Antykacraft] §eTimer stoppé par "+p.getName());
+										}
+									} catch(NullPointerException npe) {
+										p.sendMessage("§6[Antykacraft] §cAucun timer n'est en cours !");
+									}
+								} else {
+									p.sendMessage(prefix + "§cL'argument doit être un entier !");
+								}
+							}
 						} else p.sendMessage(prefix + "§cNombre d'arguments incorrect.");
-					} else p.sendMessage(PERM);
-				} else p.sendMessage(prefix + "§cTu dois être dans la map event pour éxécuter cette commande.");
-			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
-		} else if(cmd.getName().equalsIgnoreCase("stoptimer")) {
-			if(sender instanceof Player) {
-				Player p = (Player) sender;
-				if(p.hasPermission("antykacraft.event.timer")) {
-					if(p.getWorld().getName().equals("event")) {
-						Bukkit.getScheduler().cancelTasks(this);
-						Timers.sb.clearSlot(DisplaySlot.SIDEBAR);
-						for(Player pl : Bukkit.getOnlinePlayers()) pl.setScoreboard(sbManager.getMainScoreboard());
-						try{Timers.sb.getObjective("time").unregister();}
-						catch(Exception e){}
-						finally{p.sendMessage(prefix + "§aLe timer à été stoppé avec succés !");}
 					} else p.sendMessage(PERM);
 				} else p.sendMessage(prefix + "§cTu dois être dans la map event pour éxécuter cette commande.");
 			} else sender.sendMessage(prefix + "§cVous devez être un joueur pour executer cette commande.");
@@ -310,23 +311,23 @@ public class Antykacraft extends JavaPlugin {
 								Player pla = (Player) pl;
 								pla.sendMessage("§a[" + p.getName() + " ► " + t.getDisplayName() + "]§r " + msgStr);
 							} catch(Exception e) {}
-						} log.info("[" + p.getName() + " ► " + City.teamDisplay.get(t) + "]" + msgStr);
+						} log.info("[" + p.getName() + " ► " + t.getDisplayName() + "]" + msgStr);
 					} catch(NullPointerException npe) {
 						p.sendMessage("§6[AntykaCraft] §cVous n'appartenez à aucune faction !");
 					}
 				} else p.sendMessage(prefix + "§cVeuillez entrer le message.");
 			}
 		} else if(cmd.getName().equalsIgnoreCase("balancefac")) {
-			for(City c : City.cities)
-				c.updateMoney();
-			sender.sendMessage(City.balanceCity());
+			for(Faction f : Faction.getFactions())
+				f.updateMoney();
+			sender.sendMessage(Faction.balance());
 		} else if(cmd.getName().equalsIgnoreCase("faccount")) {
 			if(sender instanceof Player) {
 				Player p = (Player) sender;
 				try {
-					City c = City.getPlayerCity(p);
+					Faction f = Faction.getPlayerFaction(p);
 					if(args.length == 0) {
-						p.sendMessage(prefix + "§aLe trésor de l'empire " + c.getEmpire() + " s'élève à §6" + c.getMoney() + " Drachmes§a.");
+						p.sendMessage(prefix + "§aLe trésor de l'empire " + f.getEmpireName() + " s'élève à §6" + f.getAccount() + " Drachmes§a.");
 					} else if(args.length == 2) { // Add et Remove
 						if(args[0].equalsIgnoreCase("give")) {
 							if(p.hasPermission("antykacraft.faction.account.give")) {
@@ -339,9 +340,8 @@ public class Antykacraft extends JavaPlugin {
 												if((money - amount) >= 1000) {
 													try {
 														Economy.setMoney(p.getName(), money - amount);
-														c.addMoney(amount);
-														p.sendMessage(prefix + "§aVotre don de §6" + amount + " Drachmes§a pour " + c.getDisplayName() + " a été effectué !");
-														c.saveMoney();
+														f.addAccount(amount);
+														p.sendMessage(prefix + "§aVotre don de §6" + amount + " Drachmes§a pour " + f.getDisplayName() + " a été effectué !");
 													} catch (NoLoanPermittedException e) {
 														e.printStackTrace();
 													}
@@ -360,18 +360,17 @@ public class Antykacraft extends JavaPlugin {
 							if(p.hasPermission("antykacraft.faction.account.take")) {
 								try {
 									int amount = Integer.parseInt(args[1]);
-									int money = c.getMoney();
+									int money = f.getAccount();
 									if(money > 0) {
 										if(money >= amount) {
 											try {
-												c.removeMoney(amount);
+												f.removeAccount(amount);
 												Economy.setMoney(p.getName(), Economy.getMoney(p.getName()) + amount);
-												c.saveMoney();
 											} catch (NoLoanPermittedException e) {
 												e.printStackTrace();
 											}
-											p.sendMessage(prefix + "§aVous avez pris §a" + amount + " Drachmes au coffre de " + c.getDisplayName() + " !");
-										} else p.sendMessage(prefix + "§cLe coffre de " + c.getDisplayName() + " contient seulement " + c.getMoney());
+											p.sendMessage(prefix + "§aVous avez pris §a" + amount + " Drachmes au coffre de " + f.getDisplayName() + " !");
+										} else p.sendMessage(prefix + "§cLe coffre de " + f.getDisplayName() + " contient seulement " + f.getBalance());
 									}
 								} catch (UserDoesNotExistException e) {
 									e.printStackTrace();
@@ -422,49 +421,6 @@ public class Antykacraft extends JavaPlugin {
 						} else p.sendMessage(prefix + "§cArgument inconnu.");
 					} else p.sendMessage(prefix + "§cMauvaise utilisation.");
 				} else p.sendMessage(PERM);
-			}
-		} /*else if(cmd.getName().equalsIgnoreCase("mapbuild")) {
-			if(sender instanceof Player) {
-				Player p = (Player) sender;
-				if(p.hasPermission("antykacraft.mapbuild")) {
-					if(args.length == 2) {
-						if(args[0].equalsIgnoreCase("allow")) {
-							try {
-								Player pl = Bukkit.getPlayer(args[1]);
-								Utils.buildAllow.add(pl);
-								p.sendMessage(prefix + "§aLe joueur a bien été autorisé a pénétrer dans la map build !");
-							} catch(Exception ex) {
-								p.sendMessage(prefix + "§cLe joueur n'est pas en ligne.");
-							}
-						} else if(args[0].equalsIgnoreCase("disallow")) {
-							OfflinePlayer pl = Bukkit.getOfflinePlayer(args[1]);
-							if(Utils.buildAllow.contains(pl)) {
-								Utils.buildAllow.remove(pl);
-								p.sendMessage(prefix + "§aLe joueur a bien été interdit à pénétrer dans la map build.");
-							}
-							else p.sendMessage(prefix + "§cLe joueur n'est pas autorisé à entrer dans la map build.");
-						}
-					}
-				}
-			}
-		}*/
-		else if(cmd.getName().equalsIgnoreCase("bowspleef")) {
-			if(!(sender instanceof Player)) {
-				if(args.length == 1) {
-					try {
-						Player p = Bukkit.getPlayer(args[0]);
-						StuffKits.bowSpleef(p);
-					} catch(Exception e) {}
-				}
-			}
-		} else if(cmd.getName().equalsIgnoreCase("jobs")) { // Remove jobs.join
-			if(!(sender instanceof Player)) {
-				if(args.length == 1) {
-					if(args[0].equalsIgnoreCase("join")) {
-						Player p = (Player) sender;
-						p.sendMessage("§cVous n'avez pas la permission.");
-					}
-				}
 			}
 		}
 		return true;	

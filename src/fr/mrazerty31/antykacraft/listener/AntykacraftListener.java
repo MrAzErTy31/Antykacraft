@@ -16,9 +16,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
 import fr.mrazerty31.antykacraft.Antykacraft;
-import fr.mrazerty31.antykacraft.utils.City;
 import fr.mrazerty31.antykacraft.utils.ConfigManager;
-import fr.mrazerty31.antykacraft.utils.Raid;
+import fr.mrazerty31.antykacraft.utils.roleplay.Faction;
+import fr.mrazerty31.antykacraft.utils.roleplay.Raid;
 
 public class AntykacraftListener implements Listener {
 	@EventHandler
@@ -84,31 +84,25 @@ public class AntykacraftListener implements Listener {
 		if(e.getEntity().getKiller() instanceof Player) {
 			Player a = e.getEntity();
 			Player b = a.getKiller();
-			if(City.getPlayerCity(a).isOnRaid() && City.getPlayerCity(b).isOnRaid()) {
-				City cB = City.getPlayerCity(b);
-				int currentKills = Raid.raidKills.get(cB);
-				try {
-					Raid.raidKills.remove(cB);
-				} catch(Exception ex) {
-					ex.printStackTrace();
-				} finally {
-					Raid.raidKills.put(cB, currentKills + 1);
+			try {
+				if(Faction.getPlayerFaction(a).isOnRaid() && Faction.getPlayerFaction(b).isOnRaid()) {
+					Faction fB = Faction.getPlayerFaction(b);
+					for(Raid raid : Raid.getRaids()) {
+						if(raid.getAttacker().equals(fB) || raid.getDefender().equals(fB)) {
+							int currentKills = raid.getKills().get(fB);
+							try {
+								raid.getKills().remove(fB);
+							} catch(Exception ex) {
+								ex.printStackTrace();
+							} finally {
+								raid.getKills().put(fB, currentKills + 1);
+							}
+						}
+					}
 				}
-			}
+			} catch(NullPointerException npe) {}
 		}
 	}
-	
-	/*
-	@EventHandler
-	public void playerMoveOverGravel(PlayerMoveEvent e) {
-		Player p = e.getPlayer();
-		if(p.getWorld().getName().equalsIgnoreCase("world")) {
-			if(p.getLocation().getBlock().getRelative(BlockFace.DOWN).getType()== Material.GRAVEL) {
-				PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, 1, 10);
-				p.addPotionEffect(speed);
-			}
-		}
-	}*/
 
 	public static boolean isInEventWorld(Player p) {
 		if(p.getWorld().getName().equalsIgnoreCase("event")) 

@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -318,6 +320,17 @@ public class PvPBoxListener implements Listener {
 				} else if(b.getMaterial().equals(Material.TNT)) {
 					e.setCancelled(true);
 				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public void explosion(ExplosionPrimeEvent e) {
+		if(e.getEntity().getWorld().getName().equals("event")) {
+			if(e.getEntityType() == EntityType.PRIMED_TNT) {
+				e.setCancelled(true);
+				e.setRadius(0);
+				e.setFire(false);
 			}
 		}
 	}
